@@ -19,4 +19,4 @@ emium-btn{width:100%;border:none;background:var(--prime);color:#fff;font-size:16
 .modalInner button{margin-top:16px;}
 #qr img{margin:10px auto;display:block;}
 .social-row{display:flex;justify-content:space-around;margin:12px 0;font-size:24px;cursor:pointer;}
-@keyframes pulse{0%,100%{opacit
+keyframes pulse{0%,100%{opacit
