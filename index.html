@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <title>SAI Mining</title>
+
+    <!-- Telegram Web-App SDK (required by Adexium & TMA) -->
+    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+
+    <!-- Adexium automatic interstitial every 10 s -->
+    <script src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
+
+    <!-- Gigapub -->
+    <script src="https://ad.gigapub.tech/script?id=2997"></script>
+
+    <!-- Tads.me base -->
+    <script src="https://w.tads.me/widget.js"></script>
+
+    <!-- Oneclicka -->
+    <script src="https://js.onclckmn.com/static/onclicka.js"></script>
+    <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
+
+    <!-- Adradar -->
+    <script src="https://adradar.xyz/sdk.js"></script>
+
+    <!-- Adextra -->
+    <script async src="https://partner.adextra.io/jt/73059f7d971e3bc1ac7b76459f1a5d6c621f96e3.js"></script>
+
+    <style>
+        :root {
+            --bg: #000;
+            --primary: #9333ea;
+            --accent: #c084fc;
+            --text: #fff;
+            --gray: #4b5563;
+        }
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, Segoe UI, Roboto, sans-serif;
+        }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .screen {
+            flex: 1 1 auto;
+            display: none;
+            flex-direction: column;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        .screen.active {
+            display: flex;
+        }
+        h1, h2, h3 {
+            margin: .25em 0;
+        }
+        .btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: .9rem 1.4rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform .15s, box-shadow .15s;
+            box-shadow: 0 0 12px #9333ea66;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px #9333eaaa;
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn:disabled {
+            background: var(--gray);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .center {
+            text-align: center;
+            margin: auto;
+        }
+        .flex {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+        .tabs {
+            flex: 0 0 auto;
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #222;
+            background: #0a0a0a;
+        }
+        .tab {
+            flex: 1;
+            padding: .6rem 0;
+            text-align: center;
+            cursor: pointer;
+            font-size: .75rem;
+            color: var(--gray);
+            transition: color .2s;
+        }
+        .tab.active {
+            color: var(--accent);
+        }
+        .mini-ava {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        #mineAnim {
+            width: 220px;
+            height: 220px;
+            margin: 1rem auto;
+            background: url('https://i.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif') center/cover no-repeat;
+            border-radius: 50%;
+            box-shadow: 0 0 30px #9333ea;
+            transition: transform .4s;
+        }
+        #mineAnim.static {
+            background-image: url('https://cdn-icons-png.flaticon.com/512/12940/12940930.png');
+            transform: scale(.95);
+        }
+        .rate-tag {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            background: #9333ea;
+            padding: .4rem .8rem;
+            border-radius: 99px;
+            font-weight: 700;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            50% {
+                box-shadow: 0 0 20px #9333ea;
+            }
+        }
+        .free-label {
+            display: inline-block;
+            background: #9333ea;
+            padding: .3rem .7rem;
+            border-radius: 99px;
+            font-size: .8rem;
+            margin-bottom: .5rem;
+            animation: pulse 2s infinite;
+        }
+        .podium {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .podium > div {
+            background: #111;
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 90px;
+        }
+        .podium .gold {
+            border: 2px solid #fbbf24;
+            order: 2;
+        }
+        .podium .silver {
+            border: 2px solid #d1d5db;
+            order: 1;
+        }
+        .podium .bronze {
+            border: 2px solid #f97316;
+            order: 3;
+        }
+        #wheel {
+            width: 280px;
+            height: 280px;
+            margin: 1rem auto;
+            position: relative;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 30px #000;
+        }
+        #wheel::after {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            border: 10px solid transparent;
+            border-top-color: #fff;
+            border-radius: 50%;
+            transform: rotate(0deg);
+            transition: transform 4s cubic-bezier(.17,.67,.83,.67);
+        }
+        .sector {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: right bottom;
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .history-item {
+            background: #111;
+            padding: .7rem 1rem;
+            border-radius: 10px;
+            margin-bottom: .6rem;
+            display: flex;
+            justify-content: space-between;
+            font-size: .9rem;
+        }
+        .history-item .amt {
+            color: #22c55e;
+        }
+        .history-item .amt.out {
+            color: #ef4444;
+        }
+        .field {
+            width: 100%;
+            padding: .8rem 1rem;
+            margin: .5rem 0 1rem;
+            border-radius: 10px;
+            border: 1px solid #333;
+            background: #111;
+            color: var(--text);
+        }
+        select.field {
+            cursor: pointer;
+        }
+        .limits {
+            font-size: .8rem;
+            color: var(--gray);
+            margin: -.5rem 0 .8rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- ~~~~~~~~~~~~~~  MINING  ~~~~~~~~~~~~~~ -->
+    <section id="minePage" class="screen active">
+        <div class="rate-tag">20.00 SAI/H</div>
+        <div class="center">
+            <span class="free-label">Free Software</span>
+            <div id="mineAnim" class="static"></div>
+            <h2 id="accruing">+0.0000 SAI</h2>
+            <button id="startMiningBtn" class="btn">Start Mining</button>
+            <div style="height:20px"></div>
+            <button class="btn" onclick="openPage('tasksPage')">Regular Task</button>
+            <button class="btn" onclick="openPage('spinPage')">Mega Spin</button>
+        </div>
+    </section>
+
+    <!-- ~~~~~~~~~~~~~~  TASKS  ~~~~~~~~~~~~~~ -->
+    <section id="tasksPage" class="screen">
+        <button class="btn" onclick="openPage('minePage')">← Back</button>
+        <h2>Regular Tasks</h2>
+        <div id="taskList"></div>
+        <!-- Tads.me TGB once/24h +5 SAI -->
+        <div id="tads-container-773"></div>
+    </section>
+
+    <!-- ~~~~~~~~~~~~~~  SPIN  ~~~~~~~~~~~~~~ -->
+    <section id="spinPage" class="screen">
+        <button class="btn" onclick="openPage('minePage')">← Back</button>
+        <h2 class="center">Mega Spin</h2>
+        <div id="wheel">
+            <div class="sector" style="background:#9333ea;transform:rotate(0deg)">100</div>
+            <div class="sector" style="background:#3b82f6;transform:rotate(51.4deg)">25k</div>
+            <div class="sector" style="background:#22c55e;transform:rotate(102.8deg)">100k</div>
+            <div class="sector" style="background:#f59e0b;transform:rotate(154.2deg)">Zero</div>
+            <div class="sector" style="background:#ef4444;transform:rotate(205.6deg)">10k</div>
+            <div class="sector" style="background:#8b5cf6;transform:rotate(257deg)">100</div>
+            <div class="sector" style="background:#14b8a6;transform:rotate(308.4deg)">100</div>
+        </div>
+        <p class="center">Spins left: <b id="spinsLeft">0</b></p>
+        <button id="spinBtn" class="btn center" disabled>Spin Now</button>
+    </section>
+
+    <!-- ~~~~~~~~~~~~~~  LEADERBOARD  ~~~~~~~~~~~~~~ -->
+    <section id="leaderPage" class="screen">
+        <h1 class="center">🏆 Leaderboard</h1>
+        <div class="podium">
+            <div class="silver"><h3>2</h3><span id="s2">-</span></div>
+            <div class="gold"><h3>1</h3><span id="s1">-</span></div>
+            <div class="bronze"><h3>3</h3><span id="s3">-</span></div>
+        </div>
+        <ol id="lbList"></ol>
+    </section>
+
+    <!-- ~~~~~~~~~~~~~~  TEAM  ~~~~~~~~~~~~~~ -->
+    <section id="teamPage" class="screen">
+        <h2>Your Team</h2>
+        <div class="flex" style="flex-wrap:wrap;gap:1rem">
+            <div class="btn" style="flex:1 1 45%">Total invites<br><b id="teamCount">0</b></div>
+            <div class="btn" style="flex:1 1 45%">Total commission<br><b id="teamCommission">0 SAI</b></div>
+            <div class="btn" style="flex:1 1 45%">Valid invites<br><b id="validCount">0</b></div>
+            <div class="btn" style="flex:1 1 45%">Recent</div>
+        </div>
+        <hr>
+        <h3>Invite Friends & Mine SAI Together</h3>
+        <p>Share your link and start making SAI tokens.</p>
+        <div class="flex">
+            <input id="inviteLink" class="field" readonly>
+            <button class="btn" onclick="copyLink()">Copy</button>
+        </div>
+        <div class="flex" style="justify-content:center;margin-top:1rem">
+            <a id="fb" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" width="36"></a>
+            <a id="tg" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" width="36"></a>
+            <a id="tw" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" width="36"></a>
+            <a id="li" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/3536/3536505.png" width="36"></a>
+            <a id="wa" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" width="36"></a>
+        </div>
+        <canvas id="qr" width="160" height="160" style="margin:1rem auto;display:block"></canvas>
+    </section>
+
+    <!-- ~~~~~~~~~~~~~~  ME  ~~~~~~~~~~~~~~ -->
+    <section id="mePage" class="screen">
+        <div class="flex">
+            <img id="mePic" class="mini-ava">
+            <div>
+                <div id="meName"></div>
+                <span class="free-label">Free Software</span>
+            </div>
+        </div>
+        <h1>Main Balance: <span id="mainBal">0</span> SAI</h1>
+        <button class="btn" onclick="openPage('calcPage')">SAI Calculator</button>
+        <button class="btn" onclick="openPage('wdPage')">Withdraw</button>
+        <button class="btn" onclick="openPage('histPage')">History</button>
+    </section>
+
+    <!-- ~~~~~~~~~~~~~~  CALC  ~~~~~~~~~~~~~~ -->
+    <section id="calcPage" class="screen">
+        <button class="btn" onclick="openPage('mePage')">← Back</button>
+        <h2>SAI Calculator</h2>
+        <p>Rate: 1 SAI = $0.00010121</p>
+        <input id="calcIn" class="field" type="number" placeholder="Enter SAI amount">
+        <p id="calcOut">= $0.00</p>
+    </section>
+
+    <!-- ~~~~~~~~~~~~~~  WITHDRAW  ~~~~~~~~~~~~~~ -->
+    <section id="wdPage" class="screen">
+        <button class="btn" onclick="openPage('mePage')">← Back</button>
+        <h2>Withdraw</h2>
+        <p>Available: <b id="wdBal">0</b> SAI</p>
+        <label>Select mainnet</label>
+        <select id="netSel" class="field">
+            <option value="bep20">BEP-20 USDT</option>
+            <option value="trc20">TRC-20 USDT</option>
+        </select>
+        <p class="limits" id="wdLim">Min 300 – Max 30 000 SAI</p>
+        <input id="wdName" class="field" placeholder="Your name">
+        <input id="wdAddr" class="field" placeholder="Withdraw address">
+        <input id="wdAmt" class="field" type="number" placeholder="Amount to withdraw">
+        <button class="btn" onclick="submitWd()">Submit</button>
+    </section>
+
+    <!-- ~~~~~~~~~~~~~~  HISTORY  ~~~~~~~~~~~~~~ -->
+    <section id="histPage" class="screen">
+        <button class="btn" onclick="openPage('mePage')">← Back</button>
+        <h2>History</h2>
+        <div id="histList"></div>
+    </section>
+
+    <!-- ========= BOTTOM TABS ========= -->
+    <nav class="tabs">
+        <div class="tab active" onclick="openPage('minePage')">Mine</div>
+        <div class="tab" onclick="openPage('leaderPage')">Leaderboard</div>
+        <div class="tab" onclick="openPage('teamPage')">Team</div>
+        <div class="tab" onclick="openPage('mePage')">Me</div>
+    </nav>
+
+    <!-- ==========  CLOUDFLARE WORKER END-POINT (CHANGE ME)  ========== -->
+    <script>
+        const API = 'https://your-worker.your-subdomain.workers.dev';
+    </script>
+
+    <!-- ==========  MAIN APP  ========== -->
+    <script>
+        /* ---------- init Telegram ---------- */
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        const USER = tg.initDataUnsafe?.user || {id: 999, first_name: 'Demo', last_name: '', username: ''};
+        const USER_ID = USER.id;
+        const USER_NAME = USER.first_name + (USER.last_name || '');
+        const USER_PIC = USER.photo_url || 'https://i.pravatar.cc/150?u='+USER_ID;
+
+        /* ---------- util ---------- */
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        function toast(msg) {
+            const t = document.createElement('div');
+            t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#9333ea;color:#fff;padding:.6rem 1.2rem;border-radius:99px;z-index:999';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2500);
+        }
+        /* ---------- navigation ---------- */
+        function openPage(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const tabMap = {minePage:0, leaderPage:1, teamPage:2, mePage:3};
+            document.querySelectorAll('.tab')[tabMap[id]]?.classList.add('active');
+            if (id === 'leaderPage') loadLeaderboard();
+            if (id === 'teamPage') loadTeam();
+            if (id === 'mePage') renderMe();
+            if (id === 'histPage') renderHistory();
+            if (id === 'tasksPage') renderTasks();
+            if (id === 'spinPage') loadSpin();
+        }
+        /* ---------- persistent state ---------- */
+        const STATE = JSON.parse(localStorage.getItem('saiState') || '{}');
+        function save() {
+            localStorage.setItem('saiState', JSON.stringify(STATE));
+            syncCloud();
+        }
+        /* ---------- cloud mirror ---------- */
+        async function syncCloud() {
+            try {
+                await fetch(API + '/sync', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({userId: USER_ID, state: STATE})
+                });
+            } catch (e) { console.warn('sync fail', e) }
+        }
+        /* ---------- balance helpers ---------- */
+        function addBal(amount, source) {
+            STATE.mainBalance = (STATE.mainBalance || 0) + amount;
+            save();
+            addHistory(amount, source);
+            renderMe();
+        }
+        function deductBal(amount, source) {
+            STATE.mainBalance = Math.max(0, (STATE.mainBalance || 0) - amount);
+            save();
+            addHistory(-amount, source);
+            renderMe();
+        }
+        function addHistory(delta, source) {
+            STATE.history = STATE.history || [];
+            STATE.history.unshift({date: new Date().toISOString(), amount: delta, source});
+            save();
+        }
+        /* ---------- mining : EXACT workflow ---------- */
+        const ACC_RATE = 0.0056;               // SAI per second
+        let miningInt = null;                  // interval id
+        let miningStart = 0;                   // epoch ms
+        const TWO_HOURS_MS = 2 * 3600 * 1000;
+
+        function renderAccrue() {
+            const el = document.getElementById('accruing');
+            if (!el) return;
+            if (STATE.miningActive) {
+                const secs = (Date.now() - miningStart) / 1000;
+                const accrued = (STATE.sessionAccrued || 0) + secs * ACC_RATE;
+                el.textContent = '+' + accrued.toFixed(4) + ' SAI';
+            } else {
+                el.textContent = '+' + (STATE.sessionAccrued || 0).toFixed(4) + ' SAI';
+            }
+        }
+        function stopMining() {
+            clearInterval(miningInt); miningInt = null;
+            const secs = (Date.now() - miningStart) / 1000;
+            STATE.sessionAccrued = (STATE.sessionAccrued || 0) + secs * ACC_RATE;
+            STATE.miningActive = false;
+            STATE.lastMiningEnd = Date.now();
+            save();
+            renderAccrue();
+            document.getElementById('mineAnim').classList.add('static');
+        }
+        function startMiningCountdown() {
+            if (miningInt) return;
+            miningStart = Date.now();
+            STATE.miningActive = true;
+            save();
+            document.getElementById('mineAnim').classList.remove('static');
+            miningInt = setInterval(() => {
+                const ran = Date.now() - miningStart;
+                if (ran >= TWO_HOURS_MS) {           // auto-stop after 2 h
+                    stopMining();
+                    toast('2-hour session finished – tap Start Mining again to continue');
+                    return;
+                }
+                renderAccrue();
+            }, 200);
+        }
+        /* ---------- Start Mining button ---------- */
+        document.getElementById('startMiningBtn').onclick = async () => {
+            if (STATE.miningActive) return;        // already running
+
+            // 1. All regular tasks completed today?
+            const today = new Date().toDateString();
+            if (STATE.taskDoneDate !== today || !STATE.tasksDone?.joinTg) {
+                alert('Complete all daily tasks first!');   // pop-up block
+                return;
+            }
+
+            // 2. Show Gigapub ad (claim previous if any)
+            try {
+                await window.showGiga();
+            } catch (e) {
+                return toast('Ad error – please retry');
+            }
+
+            // 3. After ad closed: claim previous session
+            if (STATE.sessionAccrued > 0) {
+                addBal(STATE.sessionAccrued, 'Mining');
+                toast(`Claimed ${STATE.sessionAccrued.toFixed(4)} SAI`);
+                STATE.sessionAccrued = 0;
+                save();
+            }
+
+            // 4. Start fresh 2-hour accrual from 0
+            startMiningCountdown();
+        };
+
+        /* ---------- tasks ---------- */
+        const TASKS = [
+            {
+                key: 'joinTg',
+                once: true,
+                title: 'Join SAI Community',
+                desc: 'Follow the official telegram channel of the platform and you will get 50 SAI Token',
+                reward: 50,
+                action: () => {
+                    // open channel immediately
+                    tg.openTelegramLink('https://t.me/SAIMINEOFFICIAL');
+                    // mark done & credit when user comes back (no verification possible in TMA)
+                    if (!STATE.tasksDone.joinTg) {
+                        addBal(50, 'Join TG');
+                        STATE.tasksDone.joinTg = true;
+                        save();
+                        toast('+50 SAI');
+                        renderTasks();
+                    }
+                }
+            },
+            {
+                key: 'dailySign',
+                daily: true,
+                title: 'Daily Sign in',
+                desc: 'Sign in every day to get free 10 SAI tokens',
+                reward: 10,
+                action: async () => {
+                    await new Promise(res => AdRadar.showAd({adUnitId: '68c85947cf96474af2aa0701', onReward: res}));
+                    addBal(10, 'Daily Sign-in'); toast('+10 SAI'); save(); renderTasks();
+                }
+            },
+            {
+                key: 'dailyBoost',
+                daily: 4,
+                cd: 120_000,
+                title: 'Daily Booster',
+                desc: 'Complete Daily Booster & Gain Your Machine Energy',
+                reward: 10,
+                action: async () => {
+                    const ctrl = window.tads.init({widgetId: '774', type: 'fullscreen', debug: false});
+                    await ctrl.loadAd(); await ctrl.showAd();
+                    addBal(10, 'Daily Booster'); toast('+10 SAI'); save(); renderTasks();
+                }
+            },
+            {
+                key: 'power',
+                daily: 4,
+                cd: 120_000,
+                title: 'Power Supply',
+                desc: 'Attach Your Power Supply & Run Your Machine Smoothly',
+                reward: 10,
+                action: async () => {
+                    const show = await window.initCdTma({id: '6090801'});
+                    await show();
+                    addBal(10, 'Power Supply'); toast('+10 SAI'); save(); renderTasks();
+                }
+            },
+            {
+                key: 'extreme',
+                daily: 4,
+                cd: 120_000,
+                title: 'Extreme Booster',
+                desc: 'Complete Task & Run Extreme Mode in Your SAI Mining',
+                reward: 10,
+                action: async () => {
+                    await new Promise(res => window.p_adextra(res, () => {}));
+                    addBal(10, 'Extreme Booster'); toast('+10 SAI'); save(); renderTasks();
+                }
+            }
+        ];
+        function renderTasks() {
+            const box = document.getElementById('taskList');
+            box.innerHTML = '';
+            const today = new Date().toDateString();
+            if (STATE.taskDoneDate !== today) {
+                STATE.tasksDone = STATE.tasksDone || {};
+                STATE.taskCounts = {};
+                STATE.taskDoneDate = today;
+            }
+            TASKS.forEach(t => {
+                const done = t.once ? STATE.tasksDone[t.key] :
+                             t.daily === true ? STATE.tasksDone[t.key] :
+                             (STATE.taskCounts[t.key] || 0) >= t.daily;
+                const cd = t.cd && (STATE.taskCd?.[t.key] || 0) > Date.now();
+                const div = document.createElement('div');
+                div.style.cssText = 'background:#111;padding:1rem;border-radius:12px;margin:.5rem 0';
+                div.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <div><b>${t.title}</b><p style="margin:.3rem 0;font-size:.9rem;color:#aaa">${t.desc}</p></div>
+                        <span style="color:#22c55e;font-weight:700">+${t.reward} SAI</span>
+                    </div>
+                    <button class="btn" ${done || cd ? 'disabled' : ''} style="width:100%;margin-top:.7rem">
+                        ${done ? 'Completed' : cd ? 'Wait cooldown' : 'Open Task'}
+                    </button>
+                `;
+                const btn = div.querySelector('button');
+                btn.onclick = async () => {
+                    if (t.cd) {
+                        STATE.taskCd = STATE.taskCd || {};
+                        if (STATE.taskCd[t.key] > Date.now()) return toast('Cooldown');
+                    }
+                    await t.action();
+                    if (t.daily !== true && !t.once) {
+                        STATE.taskCounts[t.key] = (STATE.taskCounts[t.key] || 0) + 1;
+                        if (t.cd) STATE.taskCd[t.key] = Date.now() + t.cd;
+                    }
+                    if (t.daily === true || t.once) STATE.tasksDone[t.key] = true;
+                    save();
+                    renderTasks();
+                };
+                box.appendChild(div);
+            });
+        }
+
+        /* ---------- spin ---------- */
+        let spinning = false;
+        async function loadSpin() {
+            const left = (STATE.spinsLeft || 0);
+            document.getElementById('spinsLeft').textContent = left;
+            document.getElementById('spinBtn').disabled = left <= 0 || spinning;
+        }
+        document.getElementById('spinBtn').onclick = async () => {
+            if (spinning) return;
+            spinning = true;
+            await new Promise(res => AdRadar.showAd({adUnitId: '68c85947cf96474af2aa0701', onReward: res}));
+            const deg = 4 * 360 + [0, 51.4, 102.8, 154.2, 205.6, 257, 308.4][Math.floor(Math.random() * 7)];
+            const wheel = document.getElementById('wheel');
+            wheel.style.setProperty('transform', `rotate(${deg}deg)`);
+            await sleep(4300);
+            addBal(100, 'Mega Spin');
+            STATE.spinsLeft = (STATE.spinsLeft || 0) - 1;
+            save();
+            loadSpin();
+            spinning = false;
+            toast('You won 100 SAI!');
+        };
+
+        /* ---------- team / invites ---------- */
+        function buildInviteLink(uid) {
+            return `https://t.me/SAIMINE_BOT?start=${uid}`;
+        }
+        function renderMe() {
+            document.getElementById('meName').textContent = USER_NAME;
+            document.getElementById('mePic').src = USER_PIC;
+            document.getElementById('mainBal').textContent = (STATE.mainBalance || 0).toLocaleString(undefined, {maximumFractionDigits:4});
+            document.getElementById('wdBal').textContent = (STATE.mainBalance || 0).toLocaleString(undefined, {maximumFractionDigits:4});
+            document.getElementById('calcIn').oninput = e => {
+                const usd = (parseFloat(e.target.value) || 0) * 0.00010121;
+                document.getElementById('calcOut').textContent = '= $' + usd.toFixed(6);
+            };
+        }
+        function loadTeam() {
+            const link = buildInviteLink(USER_ID);
+            document.getElementById('inviteLink').value = link;
+            const qr = document.getElementById('qr');
+            qr.innerHTML = '';
+            import('https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js').then(QRCode => {
+                QRCode.toCanvas(qr, link, {width: 160});
+            });
+            const text = encodeURIComponent('Join me mining SAI! ' + link);
+            document.getElementById('fb').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`;
+            document.getElementById('tg').href = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${text}`;
+            document.getElementById('tw').href = `https://twitter.com/intent/tweet?text=${text}`;
+            document.getElementById('li').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link)}`;
+            document.getElementById('wa').href = `https://wa.me/?text=${text}`;
+            document.getElementById('teamCount').textContent = STATE.teamCount || 0;
+            document.getElementById('validCount').textContent = STATE.validInvites || 0;
+            document.getElementById('teamCommission').textContent = (STATE.teamCommission || 0).toFixed(2) + ' SAI';
+        }
+        function copyLink() {
+            const inp = document.getElementById('inviteLink');
+            inp.select(); document.execCommand('copy');
+            toast('Link copied!');
+        }
+        /* ---------- leaderboard ---------- */
+        async function loadLeaderboard() {
+            const res = await fetch(API + '/leaderboard').then(r => r.json());
+            const box = document.getElementById('lbList'); box.innerHTML = '';
+            ['s1','s2','s3'].forEach((id, i) => {
+                const u = res[i]; if (u) document.getElementById(id).textContent = u.name + ' – ' + u.bal + ' SAI';
+            });
+            res.forEach((u, i) => {
+                if (i >= 3) {
+                    const li = document.createElement('li');
+                    li.style.cssText = 'background:#111;padding:.6rem;border-radius:8px;margin:.4rem 0;display:flex;align-items:center;gap:.7rem';
+                    li.innerHTML = `<b>${i + 1}</b><img src="${u.pic}" class="mini-ava"><span>${u.name}</span><span style="margin-left:auto">${u.bal} SAI</span>`;
+                    box.appendChild(li);
+                }
+            });
+        }
+        /* ---------- withdraw ---------- */
+        document.getElementById('netSel').onchange = e => {
+            const lim = e.target.value === 'bep20' ? 'Min 300 – Max 30 000 SAI' : 'Min 3 000 – Max 300 000 SAI';
+            document.getElementById('wdLim').textContent = lim;
+        };
+        async function submitWd() {
+            const net = document.getElementById('netSel').value;
+            const name = document.getElementById('wdName').value.trim();
+            const addr = document.getElementById('wdAddr').value.trim();
+            const amt = parseFloat(document.getElementById('wdAmt').value);
+            const min = net === 'bep20' ? 300 : 3000;
+            const max = net === 'bep20' ? 30000 : 300000;
+            if (!name || !addr || !amt || amt < min || amt > max || amt > (STATE.mainBalance || 0))
+                return toast('Invalid input');
+            deductBal(amt, 'Withdraw');
+            toast('Withdraw successful! You will receive payment within 1–3 working days.');
+            const body = {userId: USER_ID, name, amount: amt, address: addr, method: net.toUpperCase(), history: STATE.history.slice(0, 20), date: new Date().toISOString()};
+            await fetch(API + '/withdraw', {method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)});
+            openPage('mePage');
+        }
+        /* ---------- history ---------- */
+        function renderHistory() {
+            const box = document.getElementById('histList'); box.innerHTML = '';
+            (STATE.history || []).forEach(h => {
+                const div = document.createElement('div'); div.className = 'history-item';
+                div.innerHTML = `
+                    <div><div>${new Date(h.date).toLocaleString()}</div><div style="font-size:.8rem;color:#aaa">${h.source}</div></div>
+                    <div class="amt ${h.amount < 0 ? 'out' : ''}">${h.amount > 0 ? '+' : ''}${h.amount.toFixed(4)} SAI</div>
+                `;
+                box.appendChild(div);
+            });
+        }
+        /* ---------- 48h penalty ---------- */
+        setInterval(() => {
+            const twoDays = 2 * 24 * 3600 * 1000;
+            const last = STATE.lastTaskDay || Date.now();
+            if (Date.now() - last > twoDays && (STATE.mainBalance || 0) >= 200) {
+                deductBal(200, 'Penalty (48h inactive)');
+                toast('200 SAI deducted – stay active!');
+                STATE.lastTaskDay = Date.now(); save();
+            }
+        }, 60_000);
+        /* ---------- invite attribution ---------- */
+        (async () => {
+            const startParam = new URLSearchParams(window.location.search).get('start');
+            if (startParam && !STATE.inviter && startParam !== USER_ID) {
+                STATE.inviter = startParam; save();
+                await fetch(API + '/invite', {method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({inviter: startParam, invitee: USER_ID})});
+            }
+        })();
+        /* ---------- first paint ---------- */
+        renderMe(); renderTasks(); loadSpin(); renderAccrue(); setInterval(renderAccrue, 200);
+    </script>
+</body>
+</html>
