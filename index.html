@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>SAI Mining</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- =====  AD NETWORK HEAD TAGS  ===== -->
+    <!-- Adexium -->
+    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+    <script src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
+
+    <!-- Tads -->
+    <script src="https://w.tads.me/widget.js"></script>
+
+    <!-- Oneclicka -->
+    <script src="https://js.onclckmn.com/static/onclicka.js"></script>
+    <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
+
+    <!-- Adradar -->
+    <script src="https://adradar.xyz/sdk.js"></script>
+
+    <!-- Adextra -->
+    <script async src="https://partner.adextra.io/jt/73059f7d971e3bc1ac7b76459f1a5d6c621f96e3.js"></script>
+
+    <!-- GigaPub -->
+    <script src="https://ad.gigapub.tech/script?id=2997"></script>
+</head>
+
+<body class="dark">
+    <!-- =====  TOP BAR  ===== -->
+    <header class="top-bar">
+        <span id="header-left" class="label">Free Software</span>
+        <span id="header-right" class="rate">20.00 SAI/H</span>
+    </header>
+
+    <!-- =====  VIEWPORT  ===== -->
+    <main id="viewport">
+        <!-- mine -->
+        <section id="mine" class="page active">
+            <div class="animation-box">
+                <img id="mining-gif" src="https://i.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif" alt="mining">
+            </div>
+            <div class="counter">+<span id="live-counter">0.0000</span> SAI</div>
+            <button id="start-mining" class="primary">Start Mining</button>
+            <div class="two-buttons">
+                <button class="secondary" onclick="nav.goto('tasks')">Regular Task</button>
+                <button class="secondary" onclick="nav.goto('spin')">Mega Spin</button>
+            </div>
+        </section>
+
+        <!-- tasks -->
+        <section id="tasks" class="page">
+            <button class="back" onclick="nav.goto('mine')">←</button>
+            <h2>Regular Task</h2>
+            <div id="task-list"></div>
+            <div id="tads-tgb"></div>
+        </section>
+
+        <!-- spin -->
+        <section id="spin" class="page">
+            <button class="back" onclick="nav.goto('mine')">←</button>
+            <h2>Mega Spin</h2>
+            <canvas id="wheel" width="300" height="300"></canvas>
+            <button id="spin-now" class="primary">Spin Now</button>
+            <p class="grey">You need valid invites to spin</p>
+        </section>
+
+        <!-- leaderboard -->
+        <section id="leaderboard" class="page">
+            <h2>Leaderboard</h2>
+            <div id="podium"></div>
+            <ol id="full-list"></ol>
+        </section>
+
+        <!-- team -->
+        <section id="team" class="page">
+            <h2>Your Team</h2>
+            <div class="grid">
+                <div class="card"><div class="num" id="team-count">0</div><span>Total Team</span></div>
+                <div class="card"><div class="num" id="team-commission">0</div><span>Total Commission</span></div>
+                <div class="card"><div class="num" id="valid-count">0</div><span>Valid Invites</span></div>
+                <div class="card"><div class="num" id="spin-chances">0</div><span>Spin Chances</span></div>
+            </div>
+
+            <div class="invite-box">
+                <p>Invite Your Friends & Mining "SAI" Together</p>
+                <small>Share your link and start Making SAI Token</small>
+                <div class="link-row">
+                    <input id="invite-link" readonly>
+                    <button onclick="copyLink()">Copy</button>
+                </div>
+                <div id="qr"></div>
+                <div class="socials">
+                    <span onclick="share('fb')">FB</span>
+                    <span onclick="share('tg')">TG</span>
+                    <span onclick="share('tw')">TW</span>
+                    <span onclick="share('wa')">WA</span>
+                </div>
+                <button class="primary" onclick="share()">Share Friends</button>
+            </div>
+        </section>
+
+        <!-- me -->
+        <section id="me" class="page">
+            <div class="profile">
+                <img id="me-avatar" src="">
+                <div>
+                    <div id="me-name"></div>
+                    <small>Free Software</small>
+                </div>
+            </div>
+            <div class="balance">Main Balance <b id="main-balance">0</b> SAI</div>
+
+            <div class="three-options">
+                <button onclick="nav.goto('calc')">SAI Calculator</button>
+                <button onclick="nav.goto('withdraw')">Withdraw</button>
+                <button onclick="nav.goto('history')">History</button>
+            </div>
+        </section>
+
+        <!-- calc -->
+        <section id="calc" class="page">
+            <button class="back" onclick="nav.goto('me')">←</button>
+            <h2>SAI Calculator</h2>
+            <p class="grey">1 SAI = $0.00010121</p>
+            <input id="calc-in" type="number" placeholder="Enter SAI amount">
+            <div id="calc-out">= $0</div>
+        </section>
+
+        <!-- withdraw -->
+        <section id="withdraw" class="page">
+            <button class="back" onclick="nav.goto('me')">←</button>
+            <h2>Withdraw</h2>
+            <small>Available: <b id="wd-balance">0</b> SAI</small>
+
+            <label>Select Mainnet</label>
+            <select id="wd-network">
+                <option value="bep">BEP-20 USDT</option>
+                <option value="trc">TRC-20 USDT</option>
+            </select>
+
+            <div id="wd-limits"></div>
+
+            <input id="wd-name" placeholder="Name">
+            <input id="wd-addr" placeholder="Withdraw Address">
+            <input id="wd-amount" type="number" placeholder="Amount">
+            <button class="primary" onclick="withdraw.submit()">Submit</button>
+        </section>
+
+        <!-- history -->
+        <section id="history" class="page">
+            <button class="back" onclick="nav.goto('me')">←</button>
+            <h2>History</h2>
+            <div id="history-list"></div>
+        </section>
+    </main>
+
+    <!-- =====  BOTTOM TAB BAR  ===== -->
+    <nav class="tab-bar">
+        <button onclick="nav.goto('mine')" data-page="mine" class="active">
+            <svg><use href="#ico-mine"/></svg><span>Mine</span>
+        </button>
+        <button onclick="nav.goto('leaderboard')" data-page="leaderboard">
+            <svg><use href="#ico-leader"/></svg><span>Leaderboard</span>
+        </button>
+        <button onclick="nav.goto('team')" data-page="team">
+            <svg><use href="#ico-team"/></svg><span>Team</span>
+        </button>
+        <button onclick="nav.goto('me')" data-page="me">
+            <svg><use href="#ico-me"/></svg><span>Me</span>
+        </button>
+    </nav>
+
+    <!-- =====  SVG ICONS  ===== -->
+    <svg style="display:none">
+        <symbol id="ico-mine" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.5l5.5 11h-11L12 6.5z"/></symbol>
+        <symbol id="ico-leader" viewBox="0 0 24 24"><path d="M5 9h14v2H5zm0 4h14v2H5zm0 4h14v2H5z"/></symbol>
+        <symbol id="ico-team" viewBox="0 0 24 24"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></symbol>
+        <symbol id="ico-me" viewBox="0 0 24 24"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></symbol>
+    </svg>
+
+    <!-- =====  SCRIPTS  ===== -->
+    <script src="qr.min.js"></script>
+    <script src="spin.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
